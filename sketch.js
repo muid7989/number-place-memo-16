@@ -61,8 +61,8 @@ const TEMP_MARK_POS = {
 	16: {x: 1.5, y: 1.5}
 };
 const TEMP_MARK_OFFSET = 10;
-const TEXTSIZE_MARK = 40;
-const TEXTSIZE_TEMP = 8;
+const TEXTSIZE_MARK = 36;
+const TEXTSIZE_TEMP = 12;
 const TEXTSIZE_NUM_BUTTON = '32px';
 
 let markRecord;
