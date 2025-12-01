@@ -1,3 +1,4 @@
-html {
-	touch-action: manipulation;
+body {
+	touch-action: none;
+	overscroll-behavior-y: none;
 }
