@@ -13,10 +13,10 @@ const UNIT_NUM = 16;
 const UNIT_SIZE = BASE_W / UNIT_NUM;
 const BUTTON_OFFSET = 0;
 
-const MENU_BOTTUN_W = GRID_SIZE * 1.5;
+const MENU_BOTTUN_W = GRID_SIZE * 2;
 const MENU_BUTTON_H = GRID_SIZE;
-const MENU_BOTTUN_X = BUTTON_OFFSET + GRID_SIZE * 0.5;
-const MENU_BOTTUN_Y = BUTTON_OFFSET + CANVAS_H - GRID_SIZE;
+const MENU_BOTTUN_X = BUTTON_OFFSET + GRID_SIZE * 1;
+const MENU_BOTTUN_Y = BUTTON_OFFSET + CANVAS_H - GRID_SIZE * 1.5;
 
 const FILE_BUTTON_X = BUTTON_OFFSET + GRID_SIZE * 2;
 const FILE_BUTTON_Y = BUTTON_OFFSET + GRID_SIZE * 10;
@@ -85,8 +85,10 @@ let markRecord;
 let markData;
 let qImage;
 let imageData;
+let imageBr = 50;
+let checkFlag = false;
 let fileInput;
-let menuButton;
+let menuButton, checkButton, imageBrButton;
 let saveButton, loadButton, imageButton, setupButton;
 let loadFileInput;
 let numCheck;
@@ -105,6 +107,7 @@ const SETUP_BUTTON_Y = NUM_BUTTON_Y + GRID_SIZE * 1.5;
 const SETUP_BUTTON_INT = SETUP_BUTTON_W + GRID_SIZE * 0.5;
 const SETUP_ORDER_16 = [];
 const BLOCK_SIZE = 16;
+const BLOCK_X = 4;
 let orderIndex = 0;
 function generateSetupOrder16() {
   for (let blockRow = 0; blockRow < 4; blockRow++) {
@@ -129,7 +132,6 @@ function preload() {
 }
 function handleFile(file) {
   if (file.type == 'image') {
-    console.log(file);
     qImage = loadImage(file.data);
     imageData = file.data;
   }
@@ -176,6 +178,15 @@ function skipBlockFn() {
   }
   cursor.pos.x = SETUP_ORDER_16[orderIndex].x;
   cursor.pos.y = SETUP_ORDER_16[orderIndex].y;
+}
+function checkFn() {
+  checkFlag = !checkFlag;
+}
+function imageBrFn() {
+  imageBr -= 50;
+  if (imageBr < 0){
+    imageBr = 250;
+  }
 }
 function modeSelect(mode) {
   switch (mode) {
@@ -298,13 +309,11 @@ function saveFn() {
     'mark': markData,
     'img': imageData
   }
-  //	console.log(jsonObj);
-  const fileName = 'npdata_' + year() + month() + day() + hour() + '.json';
+  const fileName = 'npdata_' + year() + month() + day() + hour() + minute() + second() + '.json';
   save(jsonObj, fileName);
 }
 function loadFn(file) {
   let jdata = file.data;
-  	console.log(jdata);
   if (jdata.record !== null) {
     markRecord = jdata.record;
 //    for (let i = 0; i < jdata.record.length; i++) {
@@ -345,6 +354,10 @@ function setup() {
   setupButton.mousePressed(setupFn);
   menuButton = buttonInit('menu', MENU_BOTTUN_W, MENU_BUTTON_H, MENU_BOTTUN_X, MENU_BOTTUN_Y);
   menuButton.mousePressed(menuFn);
+  imageBrButton = buttonInit('imageBr', MENU_BOTTUN_W, MENU_BUTTON_H, MENU_BOTTUN_X+(MENU_BOTTUN_W+GRID_SIZE)*1, MENU_BOTTUN_Y);
+  imageBrButton.mousePressed(imageBrFn);
+  checkButton = buttonInit('check', MENU_BOTTUN_W, MENU_BUTTON_H, MENU_BOTTUN_X+(MENU_BOTTUN_W+GRID_SIZE)*2, MENU_BOTTUN_Y);
+  checkButton.mousePressed(checkFn);
   saveButton = buttonInit('save', BUTTON_W, BUTTON_H, SAVE_BUTTON_X, BUTTON_Y);
   saveButton.mousePressed(saveFn);
   loadFileInput = createFileInput(loadFn);
@@ -360,7 +373,6 @@ function setup() {
   generateSetupOrder16();
 
   initMarkData();
-  console.log(markData);
 }
 function buttonInit(text, w, h, x, y) {
   let button = createButton(text);
@@ -381,7 +393,6 @@ function numCheckInit() {
     button.style('font-size', TEXTSIZE_NUM_BUTTON);
     button.mousePressed(function () {
       nc.checked = !nc.checked;
-      console.log(button);
     });
     button.hide();
     nc.button = button;
@@ -475,7 +486,6 @@ function addMarkData(mark) {
       markData[r].num = mark.num;
     }
   }
-  console.log(markData);
 }
 function addMarkDataFix(mark) {
   const r = mark.y * UNIT_NUM + mark.x;
@@ -485,7 +495,6 @@ function addMarkDataFix(mark) {
   }else{
     markData[r].fix = true;
   }
-  console.log(markData);
 }
 /*
 function searchMarkData(x, y) {
@@ -524,19 +533,25 @@ function cursorMove(x, y) {
     cursor.pos.y = CURSOR_MIN_Y;
   }
 }
-function drawMainView() {
-  if (qImage != null) {
-    image(qImage, IMAGE_X, IMAGE_Y, IMAGE_W, IMAGE_W);
-  } else {
+function drawBackImage() {
     fill(255);
     rect(IMAGE_X + IMAGE_W / 2, IMAGE_Y + IMAGE_W / 2, IMAGE_W, IMAGE_W);
+  if (qImage != null) {
+    image(qImage, IMAGE_X, IMAGE_Y, IMAGE_W, IMAGE_W);
+    fill(255,255,255,255-imageBr);
+    rect(IMAGE_X + IMAGE_W / 2, IMAGE_Y + IMAGE_W / 2, IMAGE_W, IMAGE_W);    
   }
-  stroke(200);
-  strokeWeight(1);
+}
+function drawMainView() {
+  stroke(160);
+//  strokeWeight(1);
   for (let i = 0; i < UNIT_NUM + 1; i++) {
+    if (i % BLOCK_X === 0){
+      strokeWeight(3);
+    }else{
+      strokeWeight(1);
+    }
     line(BASE_X, BASE_Y + UNIT_SIZE * i, BASE_X + UNIT_SIZE * UNIT_NUM, BASE_Y + UNIT_SIZE * i);
-  }
-  for (let i = 0; i < UNIT_NUM + 1; i++) {
     line(BASE_X + UNIT_SIZE * i, BASE_Y, BASE_X + UNIT_SIZE * i, BASE_Y + UNIT_SIZE * UNIT_NUM);
   }
   noStroke();
@@ -552,7 +567,11 @@ function drawMainView() {
         text(markData[i].tempNum[j], tx, ty);
       }
     } else {
+      if (markData[i].fix){
+        fill('blue');
+      }else{
       fill(0);
+      }
       textSize(TEXTSIZE_MARK);
       text(markData[i].num, cx, cy);
     }
@@ -584,7 +603,10 @@ function draw() {
   }
   switch (viewMode) {
     case VIEW_MODE.MAIN:
-      drawMainView();
+      drawBackImage();
+      if (!checkFlag){
+        drawMainView();
+      }
       if (joystick.control) {
         if (joystick.pos.x >= JOYSTICK_X + JOYSTICK_RANGE) {
           joystick.pos.x = JOYSTICK_X + JOYSTICK_RANGE;
@@ -626,7 +648,10 @@ function draw() {
       }
       break;
     case VIEW_MODE.SETUP:
-      drawMainView();
+      drawBackImage();
+      if (!checkFlag){
+        drawMainView();
+      }
       drawCursor();
       break;
   }
